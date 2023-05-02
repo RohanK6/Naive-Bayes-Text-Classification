@@ -51,18 +51,33 @@ public class TestClassifier {
         // The first N entries are the training data
         for (int i = 0; i < Integer.parseInt(entries); i++) {
             String name = scanner.nextLine();
+
+            // Since there may be multiple blank lines between entries, we need to check for that,
+            // and if there is, we don't want to count it as an entry
+            if (name.equals("")) {
+                i--;
+                continue;
+            }
+
             String category = scanner.nextLine();
-            String biography = scanner.nextLine();
+
+            // A biography may be composed of several lines, so we need to read in all lines until we reach a blank line
+            String biography = "";
+
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                if (line.equals("")) {
+                    break;
+                } else {
+                    biography += line + " ";
+                }
+            }
 
             ArrayList<String> normalizedBiography = normalize(biography, stopWords);
-
 
             trainingNames.add(name.trim());
             trainingCategories.add(category.trim());
             trainingBiographies.add(normalizedBiography);
-
-            // TODO make more robust
-            scanner.nextLine(); // Skip the blank line
         }
 
         // Compile a count of
@@ -215,11 +230,26 @@ public class TestClassifier {
         ArrayList<ArrayList<String>> testBiographies = new ArrayList<ArrayList<String>>();
 
         // Since the training date went from entry 0 to N, we can just parse from N + 1 to the end
-        int index = 0;
         while (scanner.hasNextLine()) {
             String name = scanner.nextLine();
+
+            // Since there may be multiple blank lines, we want to skip over them
+            if (name.equals("")) {
+                continue;
+            }
+
             String category = scanner.nextLine().trim();
-            String biography = scanner.nextLine();
+
+            // A biography may be composed of several lines, so we need to read in all lines until we reach a blank line
+            String biography = "";
+
+            while (scanner.hasNextLine()) {
+                String line = scanner.nextLine();
+                if (line.equals("")) {
+                    break;
+                }
+                biography += line + " ";
+            }
 
             ArrayList<String> normalizedBiography = normalize(biography, stopWords);
 
@@ -242,11 +272,6 @@ public class TestClassifier {
             testNames.add(name);
             testCategories.add(category);
             testBiographies.add(normalizedBiographyWithoutWordsNotInTrainingData);
-
-            index++;
-
-            // TODO make more robust
-            scanner.nextLine(); // Skip the empty line
         }
 
         // For each category C, compute L(C|Biography) = L(C) + \sum_(W \in Biography) L(W|C). As in the learning phase,
@@ -299,7 +324,6 @@ public class TestClassifier {
             //    (a) For i = 1...k, let ci = L(Ci | B), the values of L for all the different categories. Let m = min_i c_i, the smallest value of these
             //    (b) For i = 1...k, if c_i - m < 6, then x_i = 2^(m-c_i) else x_i = 0.
             //    (c) Let s = \sum_i x_i, for i = 1...k, P(C_k | B) = x_i / s
-            // Sample actual probabilities: Government: 0.44 Music: 0.07 Writer: 0.48
             LinkedHashMap<String, Double> actualProbability = new LinkedHashMap<String, Double>();
             
             // (a)
