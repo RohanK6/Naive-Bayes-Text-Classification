@@ -294,7 +294,7 @@ public class TestClassifier {
                 }
 
                 // L(C)
-                double logProbabilityForCategory = categoryLogProbabilities.get(category);
+                double logProbabilityForCategory = categoryLogProbabilities.containsKey(category) ? categoryLogProbabilities.get(category) : Integer.MAX_VALUE;
 
                 // Compute L(W|C) for each word in the biography
                 for (String word : biography) {
